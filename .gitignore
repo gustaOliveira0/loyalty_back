@@ -28,6 +28,12 @@
 
 # Docker
 *.log
+# Local-only compose override (machine-specific: host ports, LAN IP, etc.)
+docker-compose.override.yml
+
+# RSpec / coverage
+/spec/examples.txt
+/coverage
 
 # OS
 .DS_Store

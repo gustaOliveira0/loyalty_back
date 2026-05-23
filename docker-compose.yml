@@ -27,6 +27,14 @@ services:
       JWT_SECRET: your_super_secret_jwt_key_change_in_production
       POSTGRES_PASSWORD: loyalty123
       FRONTEND_URL: http://localhost:5173
+      # LGPD (Art. 46) — criptografia do CPF em repouso. Em produção, gere chaves
+      # fortes com `bin/rails db:encryption:init` e defina-as via segredos/ENV.
+      # Estes valores são apenas para o ambiente local de desenvolvimento.
+      AR_ENCRYPTION_PRIMARY_KEY: dev_only_primary_key_change_in_production_xx
+      AR_ENCRYPTION_DETERMINISTIC_KEY: dev_only_deterministic_key_change_in_prod_xx
+      AR_ENCRYPTION_KEY_DERIVATION_SALT: dev_only_key_derivation_salt_change_in_prod_xx
+      # LGPD/segurança — restrinja as origens permitidas em produção (CORS).
+      # ALLOWED_ORIGINS: https://app.sualoja.com.br
     depends_on:
       db:
         condition: service_healthy

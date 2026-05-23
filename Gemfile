@@ -13,4 +13,14 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
+
+  # Testing stack (RSpec + FactoryBot)
+  gem "rspec-rails", "~> 6.1"
+  gem "factory_bot_rails", "~> 6.4"
+  gem "shoulda-matchers", "~> 6.0"
+  gem "faker", "~> 3.2"
+end
+
+group :test do
+  gem "simplecov", "~> 0.22", require: false
 end

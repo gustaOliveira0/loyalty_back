@@ -1,7 +1,17 @@
 module JwtAuthenticatable
   extend ActiveSupport::Concern
 
-  SECRET = ENV.fetch("JWT_SECRET", "fallback_secret_change_in_production")
+  # LGPD (Art. 46) — o JWT é a chave de acesso a todos os dados pessoais das
+  # lojas. Um segredo fixo/conhecido permitiria a qualquer um forjar tokens e
+  # acessar dados de qualquer titular. Em produção, JWT_SECRET é obrigatório;
+  # fora dela usamos um segredo apenas para desenvolvimento/teste.
+  SECRET = ENV.fetch("JWT_SECRET") do
+    if Rails.env.production?
+      raise "JWT_SECRET deve ser definido em produção (LGPD Art. 46 — proteção de dados pessoais)."
+    else
+      "insecure_development_only_secret_do_not_use_in_production"
+    end
+  end
 
   def self.encode(payload)
     payload[:exp] = 30.days.from_now.to_i

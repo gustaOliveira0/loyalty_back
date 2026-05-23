@@ -1,0 +1,43 @@
+# Test harness: isolated Postgres + a one-shot RSpec runner.
+#
+#   docker compose -f docker-compose.test.yml up --build --abort-on-container-exit
+#
+# The runner prepares the test schema and runs the whole suite, then exits
+# with RSpec's status code (so CI fails on a red suite).
+#
+# NOTE: the db service name must NOT contain an underscore — it becomes the
+# DATABASE_URL host, and underscores are invalid in hostnames (Ruby's URI
+# parser rejects them). Hence "dbtest", not "db_test".
+
+services:
+  dbtest:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: loyalty
+      POSTGRES_PASSWORD: loyalty123
+      POSTGRES_DB: loyalty_backend_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U loyalty"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  test:
+    build: .
+    environment:
+      RAILS_ENV: test
+      DATABASE_URL: postgresql://loyalty:loyalty123@dbtest:5432/loyalty_backend_test
+      JWT_SECRET: test_secret
+      FRONTEND_URL: http://localhost:5173
+      CI: "true"
+    depends_on:
+      dbtest:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    # Override the server entrypoint: prepare the schema, then run the suite.
+    entrypoint: []
+    command: >
+      bash -c "bundle install &&
+               bundle exec rails db:prepare &&
+               bundle exec rspec"

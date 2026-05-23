@@ -40,5 +40,17 @@ module LoyaltyBackend
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    # LGPD (Art. 46) — criptografia de dados pessoais em repouso.
+    # O CPF é criptografado pelo Active Record Encryption (ver Customer#cpf).
+    # Em PRODUÇÃO, defina as variáveis abaixo com chaves fortes geradas por
+    # `bin/rails db:encryption:init` (ou armazene-as em credentials). Os valores
+    # padrão servem APENAS para desenvolvimento/teste e não devem ir a produção.
+    config.active_record.encryption.primary_key =
+      ENV.fetch("AR_ENCRYPTION_PRIMARY_KEY", "dev_only_primary_key_change_in_production_xx")
+    config.active_record.encryption.deterministic_key =
+      ENV.fetch("AR_ENCRYPTION_DETERMINISTIC_KEY", "dev_only_deterministic_key_change_in_prod_xx")
+    config.active_record.encryption.key_derivation_salt =
+      ENV.fetch("AR_ENCRYPTION_KEY_DERIVATION_SALT", "dev_only_key_derivation_salt_change_in_prod_xx")
   end
 end
