@@ -13,7 +13,16 @@ Rails.application.routes.draw do
         get  "/store/:store_id", to: "customers#store_info"
       end
 
-      resources :customers, only: [:index, :show, :create, :update, :destroy]
+      get   "/store_settings", to: "store_settings#show"
+      put   "/store_settings", to: "store_settings#update"
+      patch "/store_settings", to: "store_settings#update"
+
+      resources :customers, only: [:index, :show, :create, :update, :destroy] do
+        member do
+          get  :statement
+          post :redeem
+        end
+      end
       resources :sales, only: [:index, :show, :create]
       resources :credit_rules
       resources :categories
