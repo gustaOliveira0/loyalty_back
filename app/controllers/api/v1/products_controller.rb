@@ -42,7 +42,7 @@ module Api
       private
 
       def product_params
-        params.permit(:name, :value, :description)
+        params.permit(:name, :value, :description, :cashback_mode, :cashback_value)
       end
 
       def product_json(product)
@@ -53,6 +53,8 @@ module Api
           description: product.description,
           category_id: product.category_id,
           category_name: product.category.name,
+          cashback_mode: product.cashback_mode,
+          cashback_value: product.cashback_value.to_f,
           created_at: product.created_at
         }
       end

@@ -3,6 +3,8 @@ class Customer < ApplicationRecord
 
   has_many :sales, dependent: :destroy
   has_one :customer_credit, dependent: :destroy
+  has_many :cashback_transactions, dependent: :destroy
+  has_many :message_deliveries, dependent: :destroy
 
   # LGPD (Art. 46) — o CPF é um identificador nacional sensível e fica
   # criptografado em repouso. Usamos criptografia DETERMINÍSTICA para que a
@@ -16,6 +18,11 @@ class Customer < ApplicationRecord
   validates :cpf, presence: true, uniqueness: { scope: :user_id }
 
   after_create :create_credit_balance
+
+  # Saldo computado a partir do livro-razão (fonte da verdade).
+  def balance
+    cashback_transactions.sum(:amount)
+  end
 
   private
 
