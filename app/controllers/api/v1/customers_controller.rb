@@ -64,6 +64,12 @@ module Api
               description: t.description, expires_at: t.expires_at,
               created_at: t.created_at, sale_id: t.sale_id
             }
+          },
+          messages: customer.message_deliveries.order(created_at: :desc).limit(20).map { |m|
+            {
+              id: m.id, channel: m.channel, template: m.template, status: m.status,
+              body: m.body, error: m.error, sent_at: m.sent_at, created_at: m.created_at
+            }
           }
         }
       end
