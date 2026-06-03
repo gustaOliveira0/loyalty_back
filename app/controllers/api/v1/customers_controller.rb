@@ -40,6 +40,19 @@ module Api
         expired  = txns.expired.sum(:amount).abs
         balance  = customer.balance
 
+        redeemable_products = current_user.products
+          .includes(:category)
+          .where("redeem_points > 0")
+          .order(:redeem_points)
+          .select { |p| balance >= p.redeem_points }
+          .map { |p|
+            {
+              id: p.id, name: p.name, value: p.value.to_f,
+              category_name: p.category.name, redeem_points: p.redeem_points.to_f,
+              description: p.description
+            }
+          }
+
         render json: {
           customer: customer_json(customer),
           unit: current_user.cashback_kind,
@@ -48,6 +61,7 @@ module Api
           redeemed_total: redeemed.to_f,
           expired_total: expired.to_f,
           min_redeem: current_user.cashback_min_redeem.to_f,
+          redeemable_products: redeemable_products,
           purchases: sales.map { |s|
             {
               id: s.id, total: s.total.to_f, sale_date: s.sale_date,

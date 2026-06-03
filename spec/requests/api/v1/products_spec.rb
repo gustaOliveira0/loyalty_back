@@ -41,6 +41,15 @@ RSpec.describe "Api::V1::Products", type: :request do
 
       expect(response).to have_http_status(:created)
       expect(json).to include("name" => "Coca-Cola", "value" => 7.5, "category_name" => category.name)
+      expect(json["redeem_points"]).to eq(0.0)
+    end
+
+    it "stores redeem_points when provided" do
+      params = { category_id: category.id, name: "Brinde", value: 50, redeem_points: 200 }
+      post "/api/v1/products", params: params, headers: headers
+
+      expect(response).to have_http_status(:created)
+      expect(json["redeem_points"]).to eq(200.0)
     end
 
     it "returns 404 when the category belongs to another store" do

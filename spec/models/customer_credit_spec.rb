@@ -10,7 +10,7 @@ RSpec.describe CustomerCredit, type: :model do
   end
 
   describe "validations" do
-    it { is_expected.to validate_numericality_of(:available_credits).only_integer }
+    it { is_expected.to validate_numericality_of(:available_credits).is_greater_than_or_equal_to(0) }
 
     it "is invalid with a negative balance" do
       customer_credit.available_credits = -1

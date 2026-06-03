@@ -5,42 +5,43 @@ RSpec.describe "Api::V1::Sales", type: :request do
   let(:other_store) { create(:user) }
   let(:headers)     { auth_headers(store) }
   let(:customer)    { create(:customer, user: store) }
+  let(:category)    { create(:category, user: store) }
+  let!(:product)    { create(:product, user: store, category: category, value: 100, cashback_mode: "percent", cashback_value: 10) }
+  let(:items)       { [{ product_id: product.id, quantity: 2, unit_price: 100 }] }
 
   describe "POST /api/v1/sales" do
-    before { create(:credit_rule, user: store, spend_amount: 100, credit_amount: 10) }
-
-    it "creates a sale and applies credits to the customer" do
+    it "creates a sale and updates customer cashback balance" do
       expect {
         post "/api/v1/sales",
-             params: { customer_id: customer.id, total: 250 },
+             params: { customer_id: customer.id, items: items },
              headers: headers
       }.to change(Sale, :count).by(1)
 
       expect(response).to have_http_status(:created)
-      expect(json).to include("customer_name" => customer.name, "total" => 250.0)
+      expect(json).to include("customer_name" => customer.name, "total" => 200.0)
       expect(customer.customer_credit.reload.available_credits).to eq(20)
     end
 
     it "defaults sale_date to now when omitted" do
-      post "/api/v1/sales", params: { customer_id: customer.id, total: 100 }, headers: headers
+      post "/api/v1/sales", params: { customer_id: customer.id, items: items }, headers: headers
       expect(response).to have_http_status(:created)
       expect(json["sale_date"]).to be_present
     end
 
-    it "returns 422 for a non-positive total" do
-      post "/api/v1/sales", params: { customer_id: customer.id, total: 0 }, headers: headers
+    it "returns 422 when no items are sent" do
+      post "/api/v1/sales", params: { customer_id: customer.id }, headers: headers
       expect(response).to have_http_status(:unprocessable_entity)
       expect(json["errors"]).to be_present
     end
 
     it "returns 404 when the customer belongs to another store" do
       foreign = create(:customer, user: other_store)
-      post "/api/v1/sales", params: { customer_id: foreign.id, total: 100 }, headers: headers
+      post "/api/v1/sales", params: { customer_id: foreign.id, items: items }, headers: headers
       expect(response).to have_http_status(:not_found)
     end
 
     it "requires authentication" do
-      post "/api/v1/sales", params: { customer_id: customer.id, total: 100 }
+      post "/api/v1/sales", params: { customer_id: customer.id, items: items }
       expect(response).to have_http_status(:unauthorized)
     end
   end

@@ -22,75 +22,74 @@ RSpec.describe Sale, type: :model do
   end
 
   # ---------------------------------------------------------------------------
-  # Core domain rule: apply_credits (after_create)
-  #
-  # credits_earned = (total / rule.spend_amount).floor * rule.credit_amount
-  # using ONLY the rule with the highest spend_amount. See AGENTS.md.
+  # CashbackService integration — cashback is computed per product, not via
+  # credit rules. Sales must go through CashbackService.record_sale.
   # ---------------------------------------------------------------------------
-  describe "#apply_credits (after_create)" do
-    let(:store) { create(:user) }
+  describe "CashbackService integration" do
+    let(:store)    { create(:user) }
     let(:customer) { create(:customer, user: store) }
+    let(:category) { create(:category, user: store) }
 
     def available_credits
       customer.customer_credit.reload.available_credits
     end
 
-    context "when the store has no credit rule" do
+    def record_sale(product, qty: 1, unit_price: nil)
+      CashbackService.record_sale(
+        user: store,
+        customer: customer,
+        items: [{ product_id: product.id, quantity: qty, unit_price: unit_price || product.value }],
+        notify: false
+      )
+    end
+
+    context "with a percent cashback product" do
+      let!(:product) { create(:product, user: store, category: category, value: 100, cashback_mode: "percent", cashback_value: 10) }
+
+      it "credits 10% of the unit price" do
+        record_sale(product)
+        expect(available_credits).to eq(10)
+      end
+
+      it "scales linearly with quantity" do
+        record_sale(product, qty: 3)
+        expect(available_credits).to eq(30)
+      end
+
+      it "accumulates across multiple sales" do
+        record_sale(product, qty: 1)
+        record_sale(product, qty: 3)
+        expect(available_credits).to eq(40)
+      end
+    end
+
+    context "with a fixed cashback product" do
+      let!(:product) { create(:product, user: store, category: category, value: 50, cashback_mode: "fixed", cashback_value: 5) }
+
+      it "credits the fixed amount per unit" do
+        record_sale(product, qty: 2)
+        expect(available_credits).to eq(10)
+      end
+    end
+
+    context "with a product earning zero cashback" do
+      let!(:product) { create(:product, user: store, category: category, value: 100, cashback_mode: "percent", cashback_value: 0) }
+
       it "earns no credits" do
-        expect { create(:sale, user: store, customer: customer, total: 500) }
-          .not_to change { available_credits }.from(0)
+        expect { record_sale(product) }.not_to change { available_credits }.from(0)
       end
     end
 
-    context "when the store has a single credit rule" do
-      before { create(:credit_rule, user: store, spend_amount: 100, credit_amount: 10) }
+    context "when the customer credit record was destroyed" do
+      let!(:product) { create(:product, user: store, category: category, value: 100, cashback_mode: "fixed", cashback_value: 10) }
 
-      it "credits one block for an exact multiple" do
-        create(:sale, user: store, customer: customer, total: 100)
-        expect(available_credits).to eq(10)
-      end
-
-      it "floors partial blocks (R$250 with a R$100 rule => 2 blocks)" do
-        create(:sale, user: store, customer: customer, total: 250)
-        expect(available_credits).to eq(20)
-      end
-
-      it "earns nothing when the total is below one block" do
-        create(:sale, user: store, customer: customer, total: 50)
-        expect(available_credits).to eq(0)
-      end
-
-      it "accumulates credits across multiple sales" do
-        create(:sale, user: store, customer: customer, total: 100)
-        create(:sale, user: store, customer: customer, total: 300)
-        expect(available_credits).to eq(10 + 30)
-      end
-    end
-
-    context "when the store has several credit rules" do
-      # Documented quirk: only the rule with the highest spend_amount is used.
       before do
-        create(:credit_rule, user: store, spend_amount: 50,  credit_amount: 1)
-        create(:credit_rule, user: store, spend_amount: 200, credit_amount: 10)
-      end
-
-      it "uses only the rule with the highest spend_amount" do
-        # Highest rule (200/10): floor(300/200) * 10 = 10
-        # Lowest rule  (50/1):   floor(300/50)  * 1  = 6  (NOT used)
-        create(:sale, user: store, customer: customer, total: 300)
-        expect(available_credits).to eq(10)
-      end
-    end
-
-    context "when the customer has no credit balance yet" do
-      before do
-        create(:credit_rule, user: store, spend_amount: 100, credit_amount: 10)
         customer.customer_credit.destroy
         customer.reload
       end
 
-      it "recreates the balance before crediting" do
-        create(:sale, user: store, customer: customer, total: 100)
+      it "recreates the balance record before crediting" do
+        record_sale(product)
         expect(customer.reload.customer_credit.available_credits).to eq(10)
       end
     end

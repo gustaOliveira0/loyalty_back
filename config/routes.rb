@@ -23,6 +23,7 @@ Rails.application.routes.draw do
           post :redeem
         end
       end
+      get "/dashboard", to: "dashboard#show"
       resources :sales, only: [:index, :show, :create]
       resources :credit_rules
       resources :categories

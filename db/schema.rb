@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_00_01_000016) do
+ActiveRecord::Schema[7.1].define(version: 2024_00_01_000017) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -98,6 +98,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_00_01_000016) do
     t.datetime "updated_at", null: false
     t.string "cashback_mode", default: "percent", null: false
     t.decimal "cashback_value", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "redeem_points", precision: 12, scale: 2, default: "0.0", null: false
     t.index ["category_id"], name: "index_products_on_category_id"
     t.index ["user_id"], name: "index_products_on_user_id"
   end
