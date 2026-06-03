@@ -44,12 +44,14 @@ module Api
           .includes(:category)
           .where("redeem_points > 0")
           .order(:redeem_points)
-          .select { |p| balance >= p.redeem_points }
           .map { |p|
+            can_redeem = balance >= p.redeem_points
             {
               id: p.id, name: p.name, value: p.value.to_f,
               category_name: p.category.name, redeem_points: p.redeem_points.to_f,
-              description: p.description
+              description: p.description,
+              can_redeem: can_redeem,
+              missing: can_redeem ? 0.0 : (p.redeem_points.to_f - balance.to_f).round(2)
             }
           }
 

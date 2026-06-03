@@ -28,7 +28,7 @@ services:
       RAILS_ENV: test
       DATABASE_URL: postgresql://loyalty:loyalty123@dbtest:5432/loyalty_backend_test
       JWT_SECRET: test_secret
-      FRONTEND_URL: http://localhost:5173
+      FRONTEND_URL: https://loyalty-front-gray.vercel.app/
       CI: "true"
     depends_on:
       dbtest:

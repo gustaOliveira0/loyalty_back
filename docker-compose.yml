@@ -21,12 +21,13 @@ services:
     build: .
     ports:
       - "3000:3000"
+    command: bash -c "rm -f tmp/pids/server.pid && echo 'Aguardando PostgreSQL...' && bundle exec rails db:create db:migrate && echo 'Iniciando servidor...' && bundle exec rails server -b 0.0.0.0 -p 3000"
     environment:
       DATABASE_URL: postgres://loyalty:loyalty123@db:5432/loyalty_backend_development
       RAILS_ENV: development
       JWT_SECRET: your_super_secret_jwt_key_change_in_production
       POSTGRES_PASSWORD: loyalty123
-      FRONTEND_URL: http://localhost:5173
+      FRONTEND_URL: https://loyalty-front-gray.vercel.app/
       # LGPD (Art. 46) — criptografia do CPF em repouso. Em produção, gere chaves
       # fortes com `bin/rails db:encryption:init` e defina-as via segredos/ENV.
       # Estes valores são apenas para o ambiente local de desenvolvimento.
