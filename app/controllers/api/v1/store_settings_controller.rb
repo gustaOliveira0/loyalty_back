@@ -2,6 +2,7 @@ module Api
   module V1
     class StoreSettingsController < ApplicationController
       include JwtAuthenticatable
+      before_action -> { require_permission!(:can_manage_settings) }, only: [:update]
 
       def show
         render json: settings_json(current_user)

@@ -13,6 +13,9 @@ Rails.application.routes.draw do
         get  "/store/:store_id", to: "customers#store_info"
       end
 
+      get   "/profile", to: "profile#show"
+      patch "/profile", to: "profile#update"
+
       get   "/store_settings", to: "store_settings#show"
       put   "/store_settings", to: "store_settings#update"
       patch "/store_settings", to: "store_settings#update"
@@ -23,6 +26,8 @@ Rails.application.routes.draw do
           post :redeem
         end
       end
+      resources :collaborators, except: [:new, :edit]
+
       get "/dashboard", to: "dashboard#show"
       resources :sales, only: [:index, :show, :create]
       resources :credit_rules

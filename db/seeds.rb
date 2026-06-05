@@ -120,6 +120,62 @@ sample.message_deliveries.create!(
   sent_at: 1.day.ago, created_at: 1.day.ago
 )
 
+puts "Criando colaboradores fictícios..."
+collaborators_data = [
+  {
+    name: "Ana Paula Mendes",
+    cpf: "98765432100",
+    birth_date: "1992-03-18",
+    email: "ana.colaboradora@demo.local",
+    password: "senha123",
+    can_edit_customers: true, can_delete_customers: false,
+    can_create_sales: true,   can_manage_products: false,
+    can_manage_categories: false, can_manage_credit_rules: false,
+    can_view_dashboard: true, can_manage_settings: false
+  },
+  {
+    name: "Bruno Carvalho",
+    cpf: "12312312312",
+    birth_date: "1988-07-22",
+    email: "bruno.colaborador@demo.local",
+    password: "senha123",
+    can_edit_customers: true, can_delete_customers: true,
+    can_create_sales: true,   can_manage_products: true,
+    can_manage_categories: true, can_manage_credit_rules: false,
+    can_view_dashboard: true, can_manage_settings: false,
+    active: false
+  },
+  {
+    name: "Camila Torres",
+    cpf: "32132132132",
+    birth_date: "1995-11-05",
+    email: "camila.colaboradora@demo.local",
+    password: "senha123",
+    can_edit_customers: false, can_delete_customers: false,
+    can_create_sales: true,    can_manage_products: false,
+    can_manage_categories: false, can_manage_credit_rules: false,
+    can_view_dashboard: false, can_manage_settings: false
+  }
+]
+
+collaborators_data.each do |c|
+  next if store.collaborators.exists?(email: c[:email])
+  store.collaborators.create!(
+    name: c[:name], cpf: c[:cpf], birth_date: c[:birth_date],
+    email: c[:email], password: c[:password],
+    can_edit_customers: c[:can_edit_customers],
+    can_delete_customers: c[:can_delete_customers],
+    can_create_sales: c[:can_create_sales],
+    can_manage_products: c[:can_manage_products],
+    can_manage_categories: c[:can_manage_categories],
+    can_manage_credit_rules: c[:can_manage_credit_rules],
+    can_view_dashboard: c[:can_view_dashboard],
+    can_manage_settings: c[:can_manage_settings],
+    active: c.fetch(:active, true)
+  )
+  puts "  Colaborador: #{c[:name]} (#{c[:email]})"
+end
+
 puts
 puts "=" * 60
 puts "Seed concluido!"

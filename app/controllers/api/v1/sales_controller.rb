@@ -2,6 +2,7 @@ module Api
   module V1
     class SalesController < ApplicationController
       include JwtAuthenticatable
+      before_action -> { require_permission!(:can_create_sales) }, only: [:create]
 
       def index
         sales = current_user.sales.includes(:customer, sale_items: :product).order(sale_date: :desc)

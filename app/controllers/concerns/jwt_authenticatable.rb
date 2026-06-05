@@ -30,16 +30,45 @@ module JwtAuthenticatable
   end
 
   def current_user
-    @current_user ||= begin
-      token = request.headers["Authorization"]&.split(" ")&.last
-      payload = JwtAuthenticatable.decode(token)
-      User.find(payload[:user_id]) if payload
-    rescue ActiveRecord::RecordNotFound
-      nil
-    end
+    @current_user
+  end
+
+  def current_collaborator
+    @current_collaborator
   end
 
   def authenticate_user!
-    render json: { error: "Token inválido ou ausente" }, status: :unauthorized unless current_user
+    token = request.headers["Authorization"]&.split(" ")&.last
+    payload = JwtAuthenticatable.decode(token)
+
+    unless payload
+      render json: { error: "Token inválido ou ausente" }, status: :unauthorized
+      return
+    end
+
+    if payload[:collaborator_id]
+      @current_collaborator = Collaborator.active.find_by(id: payload[:collaborator_id])
+      unless @current_collaborator
+        render json: { error: "Colaborador inativo ou não encontrado" }, status: :unauthorized
+        return
+      end
+      @current_user = @current_collaborator.user
+    else
+      @current_user = User.find_by(id: payload[:user_id])
+      unless @current_user
+        render json: { error: "Token inválido ou ausente" }, status: :unauthorized
+      end
+    end
+  end
+
+  def admin_only!
+    return unless current_collaborator
+    render json: { error: "Acesso restrito ao administrador" }, status: :forbidden
+  end
+
+  def require_permission!(permission)
+    return unless current_collaborator
+    return if current_collaborator.can?(permission)
+    render json: { error: "Sem permissão para esta ação" }, status: :forbidden
   end
 end

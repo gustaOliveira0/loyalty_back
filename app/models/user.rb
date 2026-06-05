@@ -6,6 +6,7 @@ class User < ApplicationRecord
   has_many :credit_rules, dependent: :destroy
   has_many :categories, dependent: :destroy
   has_many :products, dependent: :destroy
+  has_many :collaborators, dependent: :destroy
 
   CASHBACK_KINDS = %w[money points].freeze
 

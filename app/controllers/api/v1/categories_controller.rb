@@ -2,6 +2,7 @@ module Api
   module V1
     class CategoriesController < ApplicationController
       include JwtAuthenticatable
+      before_action -> { require_permission!(:can_manage_categories) }, only: [:create, :update, :destroy]
 
       def index
         categories = current_user.categories.order(:name)

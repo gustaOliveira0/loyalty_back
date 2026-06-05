@@ -2,6 +2,8 @@ module Api
   module V1
     class CustomersController < ApplicationController
       include JwtAuthenticatable
+      before_action -> { require_permission!(:can_edit_customers) }, only: [:update]
+      before_action -> { require_permission!(:can_delete_customers) }, only: [:destroy]
 
       def index
         customers = current_user.customers.includes(:customer_credit)

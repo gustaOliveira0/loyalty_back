@@ -2,6 +2,7 @@ module Api
   module V1
     class ProductsController < ApplicationController
       include JwtAuthenticatable
+      before_action -> { require_permission!(:can_manage_products) }, only: [:create, :update, :destroy]
 
       def index
         products = current_user.products.includes(:category).order(:name)

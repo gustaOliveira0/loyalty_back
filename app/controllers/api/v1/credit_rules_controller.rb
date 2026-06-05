@@ -2,6 +2,7 @@ module Api
   module V1
     class CreditRulesController < ApplicationController
       include JwtAuthenticatable
+      before_action -> { require_permission!(:can_manage_credit_rules) }, only: [:create, :update, :destroy]
 
       def index
         rules = current_user.credit_rules.order(:spend_amount)

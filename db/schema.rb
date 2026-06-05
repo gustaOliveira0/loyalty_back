@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_00_01_000017) do
+ActiveRecord::Schema[7.1].define(version: 2024_00_01_000018) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -38,6 +38,29 @@ ActiveRecord::Schema[7.1].define(version: 2024_00_01_000017) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_categories_on_user_id"
+  end
+
+  create_table "collaborators", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "name", null: false
+    t.text "cpf"
+    t.date "birth_date", null: false
+    t.string "email", null: false
+    t.string "password_digest", null: false
+    t.boolean "active", default: true, null: false
+    t.boolean "can_edit_customers", default: true, null: false
+    t.boolean "can_delete_customers", default: true, null: false
+    t.boolean "can_create_sales", default: true, null: false
+    t.boolean "can_manage_products", default: true, null: false
+    t.boolean "can_manage_categories", default: true, null: false
+    t.boolean "can_manage_credit_rules", default: true, null: false
+    t.boolean "can_view_dashboard", default: true, null: false
+    t.boolean "can_manage_settings", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_collaborators_on_email", unique: true
+    t.index ["user_id", "cpf"], name: "index_collaborators_on_user_id_and_cpf", unique: true
+    t.index ["user_id"], name: "index_collaborators_on_user_id"
   end
 
   create_table "credit_rules", force: :cascade do |t|
@@ -144,6 +167,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_00_01_000017) do
   add_foreign_key "cashback_transactions", "sale_items"
   add_foreign_key "cashback_transactions", "sales"
   add_foreign_key "categories", "users"
+  add_foreign_key "collaborators", "users"
   add_foreign_key "credit_rules", "users"
   add_foreign_key "customer_credits", "customers"
   add_foreign_key "customers", "users"
